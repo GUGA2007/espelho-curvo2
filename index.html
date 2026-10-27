@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Espelho esférico: por que a reflexão não é linear</title>
+<style>
+:root{--bg:#fff;--fg:#1f1e1d;--fg2:#5f5e5a;--fg3:#888780;--card:#f5f4ee;--blue:#378ADD;--coral:#D85A30;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1f1e1d;--fg:#f1efe8;--fg2:#b4b2a9;--fg3:#888780;--card:#2c2c2a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1f1e1d;--fg:#f1efe8;--fg2:#b4b2a9;--fg3:#888780;--card:#2c2c2a;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.6}
+main{max-width:720px;margin:0 auto;padding:20px 16px 32px}
+h1{font-size:22px;font-weight:500;margin:0 0 6px}
+p{margin:0 0 14px;color:var(--fg2);font-size:15px}
+svg{display:block;max-width:100%}
+text{font-family:inherit;font-size:12px;fill:var(--fg2)}
+.legend{display:flex;flex-wrap:wrap;gap:16px;margin:8px 0 12px;font-size:13px;color:var(--fg2)}
+.legend span{display:flex;align-items:center;gap:6px}
+.ctl{display:flex;align-items:center;gap:12px;margin:0 0 14px;font-size:14px;color:var(--fg2)}
+.ctl input{flex:1}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.card{background:var(--card);border-radius:8px;padding:14px}
+.card .l{font-size:13px;color:var(--fg2)}.card .v{font-size:24px;font-weight:500}.card .s{font-size:13px;color:var(--fg2)}
+</style>
+</head>
+<body>
+<main>
+<h1>Espelho esférico: por que a reflexão não é linear</h1>
+<p>Arraste o controle e veja a normal (tracejada) mudar de direção e o raio refletido se afastar do foco.</p>
+<svg width="100%" viewBox="0 0 680 290" role="img" aria-label="Raios paralelos ao eixo refletidos em um espelho esférico côncavo">
+<line x1="20" y1="250" x2="620" y2="250" stroke="var(--fg3)" stroke-width="0.8"/>
+<path id="mirror" fill="none" stroke="var(--fg)" stroke-width="3.5" stroke-linecap="round"/>
+<g id="stat"></g><g id="hi"></g>
+<circle cx="50" cy="250" r="3" fill="var(--fg)"/><circle cx="310" cy="250" r="3" fill="var(--fg)"/><circle cx="570" cy="250" r="3" fill="var(--fg)"/>
+<text x="50" y="272" text-anchor="middle">C</text>
+<text x="310" y="272" text-anchor="middle">F (foco paraxial)</text>
+<text x="570" y="272" text-anchor="middle">V</text>
+</svg>
+<div class="legend">
+<span><svg width="24" height="6"><line x1="0" y1="3" x2="24" y2="3" stroke="var(--blue)" stroke-width="2.5"/></svg>raio incidente</span>
+<span><svg width="24" height="6"><line x1="0" y1="3" x2="24" y2="3" stroke="var(--coral)" stroke-width="2.5"/></svg>raio refletido</span>
+<span><svg width="24" height="6"><line x1="0" y1="3" x2="24" y2="3" stroke="var(--fg3)" stroke-width="1.2" stroke-dasharray="3 3"/></svg>normal (aponta para C)</span>
+</div>
+<div class="ctl"><label for="hs">Altura h / R</label><input type="range" id="hs" min="0.05" max="0.40" step="0.01" value="0.30"><span id="hv" style="min-width:40px;text-align:right;font-weight:500;color:var(--fg)"></span></div>
+<div class="cards">
+<div class="card"><div class="l">Ângulo de saída real</div><div class="v" id="m1"></div><div class="s" id="s1"></div></div>
+<div class="card"><div class="l">Cruza o eixo em</div><div class="v" id="m2"></div><div class="s" id="s2"></div></div>
+<div class="card"><div class="l">Desvio em relação ao foco</div><div class="v" id="m3"></div><div class="s">aberração esférica</div></div>
+</div>
+<p style="margin-top:16px">Só a metade de cima do espelho é desenhada; a de baixo é simétrica. Para raios próximos do eixo (h/R pequeno), o ângulo real e o “linear” quase coincidem e o cruzamento vai para o foco: é a aproximação paraxial.</p>
+</main>
+<script>
+var R=520,Cx=50,y0=250,x0=20,NS='http://www.w3.org/2000/svg';
+function fmt(v,d){return v.toLocaleString('pt-BR',{minimumFractionDigits:d,maximumFractionDigits:d});}
+function ln(g,x1,y1,x2,y2,col,w,op,dash){var l=document.createElementNS(NS,'line');l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);l.setAttribute('stroke',col);l.setAttribute('stroke-width',w);l.setAttribute('stroke-linecap','round');if(op)l.setAttribute('opacity',op);if(dash)l.setAttribute('stroke-dasharray',dash);g.appendChild(l);}
+function dot(g,x,y,col){var c=document.createElementNS(NS,'circle');c.setAttribute('cx',x);c.setAttribute('cy',y);c.setAttribute('r',4);c.setAttribute('fill',col);g.appendChild(c);}
+function geo(hr){var s=hr,c=Math.sqrt(1-s*s);return{px:Cx+R*c,py:y0-hr*R,xc:Cx+R/(2*c),c:c,a:Math.asin(s)};}
+var a0=26*Math.PI/180;
+document.getElementById('mirror').setAttribute('d','M '+(Cx+R*Math.cos(a0))+' '+(y0-R*Math.sin(a0))+' A '+R+' '+R+' 0 0 1 '+(Cx+R)+' '+y0);
+var st=document.getElementById('stat');
+[0.08,0.16,0.24,0.32,0.40].forEach(function(hr){var g=geo(hr);
+ln(st,x0,g.py,g.px,g.py,'#378ADD',1.2,0.45);
+ln(st,Cx,y0,g.px,g.py,'#888780',0.8,0.7,'3 3');
+ln(st,g.px,g.py,g.xc,y0,'#D85A30',1.2,0.5);});
+function upd(v){var hr=parseFloat(v),g=geo(hr),hi=document.getElementById('hi');hi.innerHTML='';
+ln(hi,x0,g.py,g.px,g.py,'#378ADD',2.5);
+ln(hi,Cx,y0,g.px,g.py,'#888780',1.4,1,'4 3');
+ln(hi,g.px,g.py,g.xc,y0,'#D85A30',2.5);
+dot(hi,g.px,g.py,'#378ADD');dot(hi,g.xc,y0,'#D85A30');
+document.getElementById('hv').textContent=fmt(hr,2);
+var real=2*g.a*180/Math.PI,lin=2*hr*180/Math.PI,xr=1/(2*g.c);
+document.getElementById('m1').textContent=fmt(real,1)+'°';
+document.getElementById('s1').textContent='se fosse linear: '+fmt(lin,1)+'°';
+document.getElementById('m2').textContent=fmt(xr,3)+' R';
+document.getElementById('s2').textContent='foco paraxial: 0,500 R';
+document.getElementById('m3').textContent=fmt((xr-0.5)/0.5*100,1)+'%';}
+document.getElementById('hs').addEventListener('input',function(e){upd(e.target.value);});
+upd(0.30);
+</script>
+</body>
+</html>
